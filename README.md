@@ -1,7 +1,6 @@
 # Requisiti
-- Un Raspberry Pi Pico W
+- Un Raspberry Pi Pico W con MicroPython
 - Una rete locale LAN
-- Un computer con un browser
+- Un computer con un browser, Python3 e Thonny IDE installati
 # Preparazione
-- Collegare il computer
-- 
+WIP
