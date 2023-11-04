@@ -1,0 +1,1 @@
+- Creare un socket che si collega alla rete locale LAN e crea un server HTTP (80) che permette a chi si collega di interagire con il robot con dei parametri nelle richieste HTTP (es. 192.168.0.2/test.html?led=on accende il led interno).
