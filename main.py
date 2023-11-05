@@ -4,6 +4,9 @@ from time import sleep
 from picozero import pico_temp_sensor, pico_led
 import machine
 
+with open("index.html") as file:
+    webpage = file.read()
+
 ssid = "robotica"
 password = "77SERVER"
 
