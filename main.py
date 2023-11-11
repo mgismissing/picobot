@@ -9,10 +9,8 @@ def snd(pwm, freq, volume):
     pwm.freq(freq)
     pwm.duty_u16(volume)
 
-print("BUZZ > TEST")
-snd(buzzer, 300, 1000)
-sleep(0.1)
-snd(buzzer, 300, 0)
+print("SLED > INIT")
+sled = machine.Pin(3, machine.Pin.OUT)
 
 print("OLED > INIT")
 scr = SSD1306_I2C(128, 64, machine.I2C(0, scl=machine.Pin(17), sda=machine.Pin(16), freq=200000))
@@ -40,6 +38,14 @@ servo_l = machine.PWM(machine.Pin(2))
 servo_l.freq(50)
 servo_l.duty_ns(NMR)
 
+print("BUZZ > TEST")
+snd(buzzer, 300, 1000)
+sleep(0.1)
+snd(buzzer, 300, 0)
+
+print("SLED > DSOK")
+sled.value(1)
+
 def connect():
     #Connect to WLAN
     print("WLAN > INIT")
@@ -61,19 +67,23 @@ def connect():
             scr.text("connect to", 0, 45)
             scr.text("exists.", 0, 54)
             scr.show()
+            sled.value(0)
             for i in range(3):
                 snd(buzzer, 500, 1000)
                 sleep(0.1)
                 snd(buzzer, 300, 0)
                 sleep(0.1)
             while True:
-                sleep(0xFFFF)
+                sleep(0.2)
+                sled.value(1)
+                sleep(0.2)
+                sled.value(0)
         scr.fill(0)
         scr.text(f"Please wait... {i}", 0, 5)
         scr.text("Connecting to:", 0, 18)
         scr.text(ssid, 0, 27)
         scr.text(f"{password[0:2]}{"*" * (len(password) - 3)}{password[-1]}", 0, 36)
-        scr.text("Make sure to be", 0, 45)
+        scr.text("Make sure you're", 0, 45)
         scr.text("on the same WiFi", 0, 54)
         scr.show()
     localip = wlan.ifconfig()[0]
@@ -152,7 +162,7 @@ try:
     scr.text("Type the number", 0, 18)
     scr.text("above in a web", 0, 27)
     scr.text("browser.", 0, 36)
-    scr.text("Make sure to be", 0, 45)
+    scr.text("Make sure you're", 0, 45)
     scr.text("on the same WiFi", 0, 54)
     scr.show()
     conn = open_socket(localip)
