@@ -6,13 +6,19 @@ ssid = "robotica"
 password = "77SERVER"
 
 scr = SSD1306_I2C(128, 64, machine.I2C(0, scl=machine.Pin(17), sda=machine.Pin(16), freq=200000))
-
-servo_l = machine.PWM(machine.Pin(2))
-servo_l.freq(50)
-
 scr.poweroff()
 scr.poweron()
 scr.invert(1)
+
+FMR = 1000000
+FWR = 750000
+NMR = 500000
+BWR = 250000
+BMR = 100000
+
+servo_l = machine.PWM(machine.Pin(2))
+servo_l.freq(50)
+servo_l.duty_ns(NMR)
 
 def connect():
     #Connect to WLAN
@@ -54,11 +60,17 @@ def serve(conn):
             pass
         print(f"SOCK > WGET {request}")
         if request == "/control?c=1":
-            servo_l.duty_ns(180)
+            servo_l.duty_ns(FWR)
+        elif request == "/control?c=2":
+            servo_l.duty_ns(BWR)
+        elif request == "/control?c=3":
+            servo_l.duty_ns(BWR)
+        elif request == "/control?c=4":
+            servo_l.duty_ns(FWR)
         elif request =="/control?c=0":
-            servo_l.duty_ns(90)
+            servo_l.duty_ns(NMR)
         html = "404: Not found"
-        if "/control" in request:
+        if request[0:8] == "/control":
             html = getwebpage("/control")
         client.send(html)
         client.close()
