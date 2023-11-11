@@ -1,9 +1,7 @@
 import network, socket, machine
 from time import sleep
 from ssd1306 import SSD1306_I2C
-
-ssid = "robotica"
-password = "77SERVER"
+from conf import ssid, password
 
 print("BUZZ > INIT")
 buzzer = machine.PWM(machine.Pin(9))
@@ -12,7 +10,7 @@ def snd(pwm, freq, volume):
     pwm.duty_u16(volume)
 
 print("BUZZ > TEST")
-snd(buzzer, 300, 500)
+snd(buzzer, 300, 1000)
 sleep(0.1)
 snd(buzzer, 300, 0)
 
@@ -20,14 +18,15 @@ print("OLED > INIT")
 scr = SSD1306_I2C(128, 64, machine.I2C(0, scl=machine.Pin(17), sda=machine.Pin(16), freq=200000))
 scr.poweroff()
 scr.poweron()
-scr.invert(1)
-scr.text("Please wait...", 0, 5)
-scr.text("Connecting to:", 0, 18)
-scr.text(ssid, 0, 27)
-scr.text(f"{password[0:2]}{"*" * (len(password) - 3)}{password[-1]}", 0, 36)
-scr.text("Make sure be on", 0, 45)
-scr.text("the same WiFi!", 0, 54)
-scr.show()
+with open("dm.s", "r") as s:
+    if s.read() == "0":
+        scr.invert(0)
+    elif s.read() == "1":
+        scr.invert(1)
+    else:
+        scr.invert(1)
+        with open("dm.s", "w") as sw:
+            sw.write("1")
 
 print("MOVE > INIT")
 FMR = 1000000
@@ -54,8 +53,29 @@ def connect():
         sleep(1)
         if i >= 0x20:
             print(f"WLAN > CERR")
+            scr.fill(0)
+            scr.text("Connection Error", 0, 5)
+            scr.text("Make sure the", 0, 18)
+            scr.text("WiFi you are", 0, 27)
+            scr.text("trying to", 0, 36)
+            scr.text("connect to", 0, 45)
+            scr.text("exists.", 0, 54)
+            scr.show()
+            for i in range(3):
+                snd(buzzer, 500, 1000)
+                sleep(0.1)
+                snd(buzzer, 300, 0)
+                sleep(0.1)
             while True:
                 sleep(0xFFFF)
+        scr.fill(0)
+        scr.text(f"Please wait... {i}", 0, 5)
+        scr.text("Connecting to:", 0, 18)
+        scr.text(ssid, 0, 27)
+        scr.text(f"{password[0:2]}{"*" * (len(password) - 3)}{password[-1]}", 0, 36)
+        scr.text("Make sure to be", 0, 45)
+        scr.text("on the same WiFi", 0, 54)
+        scr.show()
     localip = wlan.ifconfig()[0]
     print(f"WLAN > DONE {localip}")
     return localip
@@ -87,6 +107,7 @@ def serve(conn):
             request = request.split()[1]
         except IndexError:
             pass
+        # Control
         if request == "/control?c=1":
             print("MOVE > LFWR")
             servo_l.duty_ns(FWR)
@@ -102,6 +123,15 @@ def serve(conn):
         elif request == "/control?c=0":
             print("MOVE > LNMR")
             servo_l.duty_ns(NMR)
+        # Settings
+        elif request == "/control?dm=0":
+            scr.invert(0)
+            with open("dm.s", "w") as s:
+                s.write("0")
+        elif request == "/control?dm=1":
+            scr.invert(1)
+            with open("dm.s", "w") as s:
+                s.write("1")
         print(f"SOCK > WGET {request}")
         html = getwebpage("/reqerr/404")
         if request.split("?")[0] == "/control":
@@ -118,15 +148,15 @@ def serve(conn):
 try:
     localip = connect()
     scr.fill(0)
-    scr.text(str(localip), 5, 5)
+    scr.text(str(localip), 0, 5)
     scr.text("Type the number", 0, 18)
     scr.text("above in a web", 0, 27)
     scr.text("browser.", 0, 36)
-    scr.text("Make sure be on", 0, 45)
-    scr.text("the same WiFi!", 0, 54)
+    scr.text("Make sure to be", 0, 45)
+    scr.text("on the same WiFi", 0, 54)
     scr.show()
     conn = open_socket(localip)
-    snd(buzzer, 500, 500)
+    snd(buzzer, 400, 1000)
     sleep(0.1)
     snd(buzzer, 300, 0)
     serve(conn=conn)
