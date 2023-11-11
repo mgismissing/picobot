@@ -1,11 +1,18 @@
-import network
-import socket
+import network, socket, machine
 from time import sleep
-from picozero import pico_temp_sensor, pico_led
-import machine
+from ssd1306 import SSD1306_I2C
 
 ssid = "robotica"
 password = "77SERVER"
+
+scr = SSD1306_I2C(128, 64, machine.I2C(0, scl=machine.Pin(17), sda=machine.Pin(16), freq=200000))
+
+servo_l = machine.PWM(machine.Pin(2))
+servo_l.freq(50)
+
+scr.poweroff()
+scr.poweron()
+scr.invert(1)
 
 def connect():
     #Connect to WLAN
@@ -47,16 +54,20 @@ def serve(conn):
             pass
         print(f"SOCK > WGET {request}")
         if request == "/control?c=1":
-            pico_led.on()
+            servo_l.duty_ns(180)
         elif request =="/control?c=0":
-            pico_led.off()
-        html = getwebpage("/control")
+            servo_l.duty_ns(90)
+        html = "404: Not found"
+        if "/control" in request:
+            html = getwebpage("/control")
         client.send(html)
         client.close()
 
 
 try:
     localip = connect()
+    scr.text(str(localip), 5, 5)
+    scr.show()
     conn = open_socket(localip)
     serve(conn=conn)
 except KeyboardInterrupt:
