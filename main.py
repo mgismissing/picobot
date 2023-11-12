@@ -83,8 +83,8 @@ def connect():
         scr.text("Connecting to:", 0, 18)
         scr.text(ssid, 0, 27)
         scr.text(f"{password[0:2]}{"*" * (len(password) - 3)}{password[-1]}", 0, 36)
-        scr.text("Make sure you're", 0, 45)
-        scr.text("on the same WiFi", 0, 54)
+        scr.text("Connect to this", 0, 45)
+        scr.text("WiFi.", 0, 54)
         scr.show()
     localip = wlan.ifconfig()[0]
     print(f"WLAN > DONE {localip}")
@@ -109,10 +109,26 @@ def getwebpage(pagename):
             return file.read()
     return "Internal Error: Could not GET /reqerr/404"
 def serve(conn):
+    firstconn = True
     while True:
         client = conn.accept()[0]
         request = client.recv(1024)
         request = str(request)
+        if firstconn:
+            firstconn = False
+            scr.fill(0)
+            scr.text(str(localip), 0, 5)
+            scr.text("You successfully", 0, 18)
+            scr.text("connected to the", 0, 27)
+            scr.text("PicoBot! To see", 0, 36)
+            scr.text("examples go to", 0, 45)
+            scr.text("bit.ly/xpicobot", 0, 54)
+            scr.show()
+            snd(buzzer, 659, 1000)
+            sleep(0.1)
+            snd(buzzer, 523, 1000)
+            sleep(0.2)
+            snd(buzzer, 300, 0)
         try:
             request = request.split()[1]
         except IndexError:
@@ -161,9 +177,9 @@ try:
     scr.text(str(localip), 0, 5)
     scr.text("Type the number", 0, 18)
     scr.text("above in a web", 0, 27)
-    scr.text("browser.", 0, 36)
-    scr.text("Make sure you're", 0, 45)
-    scr.text("on the same WiFi", 0, 54)
+    scr.text("browser. Make", 0, 36)
+    scr.text("sure you're on", 0, 45)
+    scr.text("the same WiFi.", 0, 54)
     scr.show()
     conn = open_socket(localip)
     snd(buzzer, 400, 1000)
